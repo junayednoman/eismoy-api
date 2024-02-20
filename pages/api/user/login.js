@@ -46,7 +46,7 @@ export default async function handler(req, res) {
       });
 
       // Set token in cookie with Path attribute set to '/'
-      res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly`);
+      res.setHeader('Set-Cookie', `token=${token}; Path=/; HttpOnly; Secure; SameSite=None`);
 
       res.status(200).json({ message: 'Login successful' });
     } catch (error) {
