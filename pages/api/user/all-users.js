@@ -10,12 +10,12 @@ export default async function handler(req, res) {
 
     try {
       // Verify token
-      //const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       
       // Check if user role is admin
-    //   if (decodedToken.role !== 'admin') {
-    //     return res.status(403).json({ message: 'Forbidden' });
-    //   }
+      if (decodedToken.role !== 'admin') {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
 
       // Fetch all user details from the database
       const db = await connectToDatabase();
