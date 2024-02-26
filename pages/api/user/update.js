@@ -19,10 +19,10 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { userId, name, email, password, role, display_name } = req.body;
+    const { userid, name, email, password, role, display_name } = req.body;
 
     // Check if required fields are empty
-    if (!userId || !name || !email || !role || !display_name) {
+    if (!userid || !name || !email || !role || !display_name) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -48,7 +48,7 @@ export default async function handler(req, res) {
       const db = await connectToDatabase();
 
       // Check if user exists
-      const existingUser = await db.collection('users').findOne({ userId });
+      const existingUser = await db.collection('users').findOne({ userid: userid });
 
       if (!existingUser) {
         return res.status(404).json({ message: 'User not found' });
