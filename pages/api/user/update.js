@@ -71,7 +71,7 @@ export default async function handler(req, res) {
 
       // Update user
       await db.collection('users').updateOne(
-        { userId },
+        { userid: userid },
         {
           $set: updateData
         }
