@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         return;
     }
 
-    if (req.method === 'DELETE') {
+    if (req.method === 'POST') { // Change method check to POST
         try {
             // Parse token from request cookies
             const token = req.cookies.token;
@@ -37,24 +37,24 @@ export default async function handler(req, res) {
                 return res.status(403).json({ message: 'Forbidden' });
             }
 
-            // Extract the userid from the request parameters
-            const { userid } = req.query;
+            // Extract the userid from the request body
+            const { userId } = req.body; // Assuming the user ID is sent in the request body
 
-            if (!userid) {
+            if (!userId) {
                 return res.status(400).json({ message: 'User ID is required' });
             }
 
             const db = await connectToDatabase();
 
             // Check if the user exists
-            const existingUser = await db.collection('users').findOne({ userid });
+            const existingUser = await db.collection('users').findOne({ userid: userId });
 
             if (!existingUser) {
                 return res.status(404).json({ message: 'User not found' });
             }
 
             // Delete the user
-            await db.collection('users').deleteOne({ userid });
+            await db.collection('users').deleteOne({ userid: userId });
 
             res.status(200).json({ message: 'User deleted successfully' });
         } catch (error) {
