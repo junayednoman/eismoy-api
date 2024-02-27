@@ -70,6 +70,7 @@ export default async function handler(req, res) {
         categoryName,
         slug,
         parent: parent || null, // Set parent to null if it's empty
+        news_count: 0, 
         metaTitle,
         metaDescription,
         focusKeyword
