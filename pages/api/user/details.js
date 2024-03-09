@@ -3,6 +3,21 @@ import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+
+    // Enable CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Authorization, Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override'
+    );
+  
+    // Handle preflight request
+    if (req.method === 'OPTIONS') {
+      res.status(200).end(); // Respond with 200 status code for preflight requests
+      return;
+    }
   if (req.method === 'GET') {
     // Parse token from request cookies
     const token = req.cookies.token;
