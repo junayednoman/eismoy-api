@@ -18,19 +18,16 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { categoryName, slug, parent, metaTitle, metaDescription, focusKeyword } = req.body;
+    const { cat_id, categoryName, slug, parent, metaTitle, metaDescription, focusKeyword } = req.body;
 
     // Check if required fields are empty
-    if (!categoryName || !slug || !metaTitle || !metaDescription || !focusKeyword) {
+    if (!cat_id) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
     try {
       // Parse token from request cookies
       const token = req.cookies.token;
-
-      // Parse token from request query to test in postman
-      //const token = req.query.token;
 
       if (!token) {
         return res.status(401).json({ message: 'Unauthorized' });
@@ -42,41 +39,33 @@ export default async function handler(req, res) {
       // Extract user's role
       const userRole = decodedToken.role;
 
-      // Check if user role is not admin or editor
+      // Check if the user has the necessary role to update users
       if (userRole !== 'admin' && userRole !== 'editor') {
         return res.status(403).json({ message: 'Forbidden' });
-        }
+      }
 
       const db = await connectToDatabase();
 
-      // Get the latest user document to determine the next userid
-      const latesCat = await db.collection('news_categories').find().sort({ cat_id: -1 }).limit(1).toArray();
-      let nextCatId = 1;
-
-      if (latesCat.length > 0) {
-        nextCatId = latesCat[0].cat_id + 1;
-      }
-
-      // Check if user exists
-      const existingCat = await db.collection('news_categories').findOne({ categoryName });
-
-      if (existingCat) {
-        return res.status(400).json({ message: 'Category already exists' });
-      }
-
-      // Create category
-      await db.collection('news_categories').insertOne({
-        cat_id: nextCatId,
+      // Construct update data
+      const updateData = {
         categoryName,
         slug,
-        parent: parent || null, // Set parent to null if it's empty
-        news_count: 0, 
+        parent,
         metaTitle,
         metaDescription,
-        focusKeyword
-    });
+        focusKeyword,
 
-      res.status(201).json({ message: 'Category created successfully' });
+      };
+
+      // Update user
+      await db.collection('gallery_categories').updateOne(
+        { cat_id: cat_id },
+        {
+          $set: updateData
+        }
+      );
+
+      res.status(200).json({ message: 'Category updated successfully' });
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
