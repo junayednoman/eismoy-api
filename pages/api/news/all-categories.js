@@ -35,15 +35,8 @@ export default async function handler(req, res) {
       // Fetch all user details from the database
       const db = await connectToDatabase();
       const categories = await db.collection('news_categories').find({}, { projection: { _id: 0 } }).toArray(); // Exclude _id, password, and forget_password_token fields
-
-      const totalCount = await db.collection('news_categories').countDocuments();
-
-      const response = {
-        categories,
-        totalCount
-      };
       
-      res.status(200).json(response);
+      res.status(200).json(categories);
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
