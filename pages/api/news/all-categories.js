@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       
       // Check if user role is not admin or editor
-        if (decodedToken.role !== 'admin' && decodedToken.role !== 'editor') {
+        if (decodedToken.role !== 'admin' && decodedToken.role !== 'editor' && decodedToken.role !== 'reporter') {
             return res.status(403).json({ message: 'Forbidden' });
         }
 
