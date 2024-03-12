@@ -38,14 +38,14 @@ export default async function handler(req, res) {
 
       // Verify token
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      
+
       // Extract user's role
       const userRole = decodedToken.role;
 
       // Check if user role is not admin or editor
       if (userRole !== 'admin' && userRole !== 'editor') {
         return res.status(403).json({ message: 'Forbidden' });
-        }
+      }
 
       const db = await connectToDatabase();
 
@@ -55,9 +55,9 @@ export default async function handler(req, res) {
         category,
         newsId1,
         newsId2, // Set parent to null if it's empty
-        newsId3, 
+        newsId3,
         newsId4,
-    });
+      });
 
       res.status(201).json({ message: 'Event News Updated successfully' });
     } catch (error) {
