@@ -1,4 +1,4 @@
-// pages/api/all-users.js
+// pages/api/news/all-news
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
@@ -35,14 +35,16 @@ export default async function handler(req, res) {
       // Fetch all user details from the database
       const db = await connectToDatabase();
 
+      let categories;
+
       if(decodedToken.role == reporter){
         const user = await db.collection('users').findOne({ userid: decodedToken.userId });
         const displayName = user.display_name;
 
-        const categories = await db.collection('news').find({ created_by: displayName }).toArray();
+        categories = await db.collection('news').find({ created_by: displayName }).toArray();
       }
       else{
-        const categories = await db.collection('news').find({}).toArray();
+        categories = await db.collection('news').find({}).toArray();
       }
       
       
