@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       }
 
       // Fetch pagination parameters from query string
-      const { page = req.query.page, limit = req.query.limit } = req.query;
+      const { page = req.query.page, limit = req.query.limit, sortColumn, sortOrder, search } = req.query;
       const skip = (parseInt(page) - 1) * parseInt(limit); // Calculate the number of documents to skip
 
       // Fetch all user details from the database
@@ -40,27 +40,36 @@ export default async function handler(req, res) {
       let categories;
       let totalCount;
 
+      const query = {};
+
       if (decodedToken.role === 'reporter') {
         const user = await db.collection('users').findOne({ userid: decodedToken.userId });
         const displayName = user.display_name;
 
-        categories = await db.collection('news')
-          .find({ created_by: displayName })
-          .skip(skip)
-          .limit(parseInt(limit))
-          .toArray();
+        query.created_by = displayName;
+      }
 
-        // Count only the reporter's news items
-        totalCount = await db.collection('news').countDocuments({ created_by: displayName });
-      } else {
-        categories = await db.collection('news')
-          .find({})
-          .skip(skip)
-          .limit(parseInt(limit))
-          .toArray();
+      // Apply search filter for all fields
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', '_id', 'created_datetime', 'published_datetime', 'modified_datetime'];
+            query.$or = searchFields.map((field) => ({ [field]: { $regex: searchRegex } }));
+        }
+      // Fetch categories based on the query
+      categories = await db.collection('news')
+        .find(query)
+        .skip(skip)
+        .limit(parseInt(limit))
+        .toArray();
 
-        // Count all news items for admin and editor
-        totalCount = await db.collection('news').countDocuments();
+      // Count total matching documents for pagination
+      totalCount = await db.collection('news').countDocuments(query);
+
+      // Apply sorting
+      if (sortColumn && sortOrder) {
+        const sortQuery = {};
+        sortQuery[sortColumn] = sortOrder === 'asc' ? 1 : -1;
+        categories.sort(sortQuery);
       }
 
       res.status(200).json({ categories, totalCount });
