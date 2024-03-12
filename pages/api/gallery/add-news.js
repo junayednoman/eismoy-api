@@ -18,10 +18,10 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { title, video_Url, category, uploader_name, created_by, published_by, last_modified_by, publish_status, tags, meta_title, meta_description, meta_image, focus_keyword } = req.body;
+    const { title, gallery_Names, featured_image, category, uploader_name, created_by, published_by, last_modified_by, publish_status, tags, meta_title, meta_description, meta_image, focus_keyword } = req.body;
 
     // Check if required fields are empty
-    if (!title || !video_Url) {
+    if (!title) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -61,7 +61,8 @@ export default async function handler(req, res) {
       // Create a new news item document
         const newNewsItem = {
             title,
-            video_Url,
+            gallery_Names,
+            featured_image,
             category,
             uploader_name,
             created_by,
@@ -81,9 +82,9 @@ export default async function handler(req, res) {
         const db = await connectToDatabase();
 
         // Insert the new news item into the MongoDB collection
-        await db.collection('videos').insertOne(newNewsItem);
+        await db.collection('photo_gallery').insertOne(newNewsItem);
 
-      res.status(201).json({ message: 'Videos created successfully' });
+      res.status(201).json({ message: 'Gallery created successfully' });
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
