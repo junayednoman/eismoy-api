@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
       let categories;
 
-      if(decodedToken.role == reporter){
+      if(decodedToken.role == 'reporter'){
         const user = await db.collection('users').findOne({ userid: decodedToken.userId });
         const displayName = user.display_name;
 
