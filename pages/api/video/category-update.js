@@ -58,7 +58,9 @@ export default async function handler(req, res) {
       };
 
       // Update user
+
       await db.collection('video_categories').updateOne(
+
         { cat_id: cat_id },
         {
           $set: updateData
