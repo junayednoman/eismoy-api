@@ -60,9 +60,13 @@ export default async function handler(req, res) {
 
       // Check if user exists
       const existingUser = await db.collection('users').findOne({ email });
+      const existingUser2 = await db.collection('users').findOne({ display_name });
 
       if (existingUser) {
         return res.status(400).json({ message: 'User already exists' });
+      }
+      if (existingUser2) {
+        return res.status(400).json({ message: 'Display Name already exists' });
       }
 
       // Hash password
