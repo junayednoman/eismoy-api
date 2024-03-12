@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       }
 
       // Fetch pagination parameters from query string
-      const { page = req.query.page, limit = req.query.limit, sortColumn, sortOrder, search } = req.query;
+      const { page = req.query.page, limit = req.query.limit, sortColumn = req.query.sortColumn, sortOrder = req.query.sortOrder, search = req.query.search } = req.query;
       const skip = (parseInt(page) - 1) * parseInt(limit); // Calculate the number of documents to skip
 
       // Fetch all user details from the database
