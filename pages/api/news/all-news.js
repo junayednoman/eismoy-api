@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       // Apply search filter for all fields
       if (search) {
         const searchRegex = new RegExp(search, 'i');
-        const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', '_id', 'created_datetime', 'published_datetime', 'modified_datetime'];
+        const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', 'created_datetime', 'published_datetime', 'modified_datetime'];
         query.$or = searchFields.map((field) => ({ [field]: { $regex: searchRegex } }));
       }
 
