@@ -50,27 +50,22 @@ export default async function handler(req, res) {
       }
 
       // Apply search filter for all fields
-        if (search) {
-            const searchRegex = new RegExp(search, 'i');
-            const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', '_id', 'created_datetime', 'published_datetime', 'modified_datetime'];
-            query.$or = searchFields.map((field) => ({ [field]: { $regex: searchRegex } }));
-        }
-      // Fetch categories based on the query
+      if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', '_id', 'created_datetime', 'published_datetime', 'modified_datetime'];
+        query.$or = searchFields.map((field) => ({ [field]: { $regex: searchRegex } }));
+      }
+
+      // Fetch categories based on the query and apply sorting
       categories = await db.collection('news')
         .find(query)
+        .sort({ [sortColumn]: sortOrder === 'asc' ? 1 : -1 }) // Apply sorting here
         .skip(skip)
         .limit(parseInt(limit))
         .toArray();
 
       // Count total matching documents for pagination
       totalCount = await db.collection('news').countDocuments(query);
-
-      // Apply sorting
-      if (sortColumn && sortOrder) {
-        const sortQuery = {};
-        sortQuery[sortColumn] = sortOrder === 'asc' ? 1 : -1;
-        categories.sort(sortQuery);
-      }
 
       res.status(200).json({ categories, totalCount });
     } catch (error) {
