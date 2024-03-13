@@ -48,7 +48,7 @@ export default async function handler(req, res) {
             const userRole = decodedToken.role;
 
             // Check if user role is not admin or editor
-            if (userRole !== 'admin' && userRole !== 'editor') {
+            if (userRole !== 'admin') {
                 return res.status(403).json({ message: 'Forbidden' });
             }
 
