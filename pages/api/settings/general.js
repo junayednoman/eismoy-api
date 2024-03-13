@@ -37,9 +37,6 @@ export default async function handler(req, res) {
             // Parse token from request cookies
             const token = req.cookies.token;
 
-            // Parse token from request query to test in postman
-            //const token = req.query.token;
-
             if (!token) {
                 return res.status(401).json({ message: 'Unauthorized' });
             }
@@ -57,9 +54,8 @@ export default async function handler(req, res) {
 
             const db = await connectToDatabase();
 
-
-            // Create category
-            await db.collection('general_settings').insertOne({
+            // Define the document to insert or update
+            const generalSettingsDocument = {
                 site_name,
                 logo_image,
                 seo_title,
@@ -67,7 +63,17 @@ export default async function handler(req, res) {
                 meta_image,
                 news_scroll_status,
                 event_news_status
-            });
+            };
+
+            // Find the existing document
+            const existingDocument = await db.collection('general_settings').findOne({});
+
+            // Update or insert based on the existence of the document
+            if (existingDocument) {
+                await db.collection('general_settings').updateOne({}, { $set: generalSettingsDocument });
+            } else {
+                await db.collection('general_settings').insertOne(generalSettingsDocument);
+            }
 
             res.status(201).json({ message: 'General Settings Updated successfully' });
         } catch (error) {
