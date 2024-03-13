@@ -54,7 +54,7 @@ export default async function handler(req, res) {
             const updateDoc = { $set: categoriesWithValue }
 
             // update layout news
-            await db.collection('layout_news').update(filter, updateDoc);
+            await db.collection('layout_news').updateOne(filter, updateDoc);
 
             res.status(201).json({ message: 'Layout News Updated successfully' });
         } catch (error) {
