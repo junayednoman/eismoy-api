@@ -44,9 +44,9 @@ export default async function handler(req, res) {
             const layoutNewsDocument = await db.collection('layout_news').findOne({});
 
             // If the document is not found, send an empty object instead of 404
-            if (!layoutNewsDocument) {
-                return res.status(200).json({});
-            }
+            // if (!layoutNewsDocument) {
+            //     return res.status(200).json({});
+            // }
 
             res.status(200).json(layoutNewsDocument);
         } catch (error) {
