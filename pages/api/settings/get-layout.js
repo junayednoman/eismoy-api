@@ -41,7 +41,7 @@ export default async function handler(req, res) {
             const db = await connectToDatabase();
 
             // Find the layout news document
-            const layoutNewsDocument = await db.collection('layout_news').findOne({});
+            const layoutNewsDocument = await db.collection('layout_news').findOne({}, { projection: { _id: 0 } });
 
             // If the document is not found, send an empty object instead of 404
             // if (!layoutNewsDocument) {
