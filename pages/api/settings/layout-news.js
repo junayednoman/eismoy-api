@@ -107,7 +107,7 @@ export default async function handler(req, res) {
             if (userRole !== 'admin') {
                 return res.status(403).json({ message: 'Forbidden' });
             }
-            
+
             const db = await connectToDatabase();
 
             // Find the layout news document
