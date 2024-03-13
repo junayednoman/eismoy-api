@@ -17,10 +17,7 @@ export default async function handler(req, res) {
         return;
     }
 
-    if (req.method === 'POST') {
-        const {
-            category1, category2, category3, category4, category5, category6, category7, category8, category9, category10, category11, category12, category13, category14, category15, category16, category17, category18, category19, category20, category21,
-        } = req.body;
+    if (req.method === 'PATCH') {
 
         try {
             // Parse token from request cookies
@@ -46,30 +43,18 @@ export default async function handler(req, res) {
 
             const db = await connectToDatabase();
 
-            // Create category
-            await db.collection('layout_news').insertOne({
-                category1,
-                category2,
-                category3,
-                category4,
-                category5,
-                category6,
-                category7,
-                category8,
-                category9,
-                category10,
-                category11,
-                category12,
-                category13,
-                category14,
-                category15,
-                category16,
-                category17,
-                category18,
-                category19,
-                category20,
-                category21,
-            });
+            const filter = {}
+            // check if the category field is empty
+            let categoriesWithValue = {}
+            for (key in req.body) {
+                if (req.body[key]) {
+                    categoriesWithValue[key] = req.body[key];
+                }
+            }
+            const updateDoc = { $set: categoriesWithValue }
+
+            // update layout news
+            await db.collection('layout_news').update(filter, updateDoc);
 
             res.status(201).json({ message: 'Layout News Updated successfully' });
         } catch (error) {
