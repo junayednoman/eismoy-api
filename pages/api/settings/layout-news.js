@@ -26,9 +26,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const {
-            category1, category2, category3, category4, category5, category6, category7, category8, category9, category10, category11, category12, category13, category14, category15, category16, category17, category18, category19, category20, category21,
-        } = req.body;
+        const {category1, category2, category3, category4, category5, category6, category7, category8, category9, category10, category11, category12, category13, category14, category15, category16, category17, category18, category19} = req.body;
 
         try {
             // Parse token from request cookies
@@ -71,9 +69,7 @@ export default async function handler(req, res) {
                 category16,
                 category17,
                 category18,
-                category19,
-                category20,
-                category21,
+                category19
             };
 
             // Find the existing document
