@@ -4,7 +4,11 @@ import jwt from 'jsonwebtoken';
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN);
+    // Allow requests from all subdomains of vercel.app
+  const origin = req.headers.origin;
+  if (origin && origin.endsWith('.vercel.app')) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.setHeader(
     'Access-Control-Allow-Headers',
