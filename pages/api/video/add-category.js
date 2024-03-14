@@ -2,24 +2,28 @@ import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
-    // Allow requests from all subdomains of vercel.app
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  
+  // Set Access-Control-Allow-Origin header dynamically based on the request origin
   const origin = req.headers.origin;
-  if (origin && origin.endsWith('.vercel.app')) {
+  const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app'];
+  
+  if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Authorization, Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override'
-  );
-
-  // Handle preflight request
-  if (req.method === 'OPTIONS') {
-    res.status(200).end(); // Respond with 200 status code for preflight requests
+  } else {
+    // If the origin is not allowed, return a CORS error response
+    res.status(403).json({ error: 'Origin not allowed' });
     return;
   }
+  
+    // Handle preflight request
+    if (req.method === 'OPTIONS') {
+      res.status(200).end(); // Respond with 200 status code for preflight requests
+      return;
+    }
 
   if (req.method === 'POST') {
     const { categoryName, slug, parent, metaTitle, metaDescription, focusKeyword } = req.body;
