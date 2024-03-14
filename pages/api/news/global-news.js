@@ -18,10 +18,7 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { category, limit, skipItem, skipNews } = req.query;
-
-
- 
+      const { category, limit, skipItem, skipNews } = req.query; 
       
       // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();

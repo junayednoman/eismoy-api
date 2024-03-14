@@ -49,9 +49,7 @@ export default async function handler(req, res) {
 
             const db = await connectToDatabase();
 
-
-            // Create category
-            await db.collection('featured_news').insertOne({
+            const featuredDoc = {
                 newsId1,
                 newsId2,
                 newsId3,
@@ -64,7 +62,18 @@ export default async function handler(req, res) {
                 newsId10,
                 newsId11,
                 newsId12,
-            });
+            };
+
+
+            // Find the existing document
+            const existingDocument = await db.collection('featured_news').findOne({});
+
+            // Update or insert based on the existence of the document
+            if (existingDocument) {
+                await db.collection('featured_news').updateOne({}, { $set: featuredDoc });
+            } else {
+                await db.collection('featured_news').insertOne(featuredDoc);
+            }
 
             res.status(201).json({ message: 'Featured News Updated successfully' });
         } catch (error) {
