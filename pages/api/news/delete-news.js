@@ -1,6 +1,8 @@
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
+const { ObjectId } = require('mongodb');
+
 export default async function handler(req, res) {
     // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -53,16 +55,18 @@ export default async function handler(req, res) {
             }
 
             const db = await connectToDatabase();
+            
+            const objectId = ObjectId.createFromHexString(cat_id);
 
             // Check if the user exists
-            const existingUser = await db.collection('news').findOne({ _id: cat_id });
+            const existingUser = await db.collection('news').findOne({ _id: objectId });
 
             if (!existingUser) {
                 return res.status(404).json({ message: 'News not found' });
             }
 
             // Delete the user
-            await db.collection('news').deleteOne({ _id: cat_id });
+            await db.collection('news').deleteOne({ _id: objectId });
 
             res.status(200).json({ message: 'News deleted successfully' });
         } catch (error) {
