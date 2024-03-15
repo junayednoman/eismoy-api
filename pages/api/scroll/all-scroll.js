@@ -1,7 +1,9 @@
+// pages/api/all-users.js
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -24,55 +26,25 @@ export default async function handler(req, res) {
     res.status(200).end(); // Respond with 200 status code for preflight requests
     return;
   }
-
-  if (req.method === 'POST') {
-    const { title, scrollStatus } = req.body;
-
-    // Check if required fields are empty
-    if (!title) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
+  
+  if (req.method === 'GET') {
+    // Parse token from request cookies
+    const token = req.cookies.token;
 
     try {
-      // Parse token from request cookies
-      const token = req.cookies.token;
-
-      // Parse token from request query to test in postman
-      //const token = req.query.token;
-
-      if (!token) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-
       // Verify token
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
       
-      // Extract user's role
-      const userRole = decodedToken.role;
-
       // Check if user role is not admin or editor
-      if (userRole !== 'admin' && userRole !== 'editor') {
-        return res.status(403).json({ message: 'Forbidden' });
+        if (decodedToken.role !== 'admin' && decodedToken.role !== 'editor') {
+            return res.status(403).json({ message: 'Forbidden' });
         }
 
+      // Fetch all user details from the database
       const db = await connectToDatabase();
-
-      // Get the latest user document to determine the next userid
-      const latesCat = await db.collection('scroll').find().sort({ scroll_id: -1 }).limit(1).toArray();
-      let nextCatId = 1;
-
-      if (latesCat.length > 0) {
-        nextCatId = latesCat[0].scroll_id + 1;
-      }
-
-      // Create category
-      await db.collection('scroll').insertOne({
-        scroll_id: nextCatId,
-        title,
-        scroll_status: scrollStatus
-    });
-
-      res.status(201).json({ message: 'Scroll created successfully' });
+      const categories = await db.collection('scroll').find({}, { projection: { _id: 0 } }).toArray(); // Exclude _id, password, and forget_password_token fields
+      
+      res.status(200).json(categories);
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
