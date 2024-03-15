@@ -26,19 +26,19 @@ export default async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
-      const { category, limit, skipItem, skipNews } = req.body; 
-      
+      const { category, limit, skipItem, skipNews, newsIds } = req.body; // Include newsIds in the request body
+
       // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();
 
       let query = {};
-      
+
       // Apply category filter if provided
       if (category) {
         const categoryRegex = new RegExp(category, 'i');
         query.category = { $regex: categoryRegex };
       }
-      
+
       // Apply skip value if provided
       let skip = 0;
       if (skipItem && !isNaN(parseFloat(skipItem))) {
@@ -49,6 +49,12 @@ export default async function handler(req, res) {
       if (skipNews) {
         const skipNewsIds = skipNews.split(',').map(id => id.trim());
         query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
+      }
+
+      // Apply newsIds filter if provided
+      if (newsIds) {
+        const newsIdsArray = newsIds.split(',').map(id => id.trim());
+        query._id = { $in: newsIdsArray }; // Include only news with provided IDs
       }
 
       // Fetch news based on the query
