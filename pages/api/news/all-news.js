@@ -67,7 +67,7 @@ export default async function handler(req, res) {
       // Fetch categories based on the query and apply sorting
       categories = await db.collection('news')
         .find(query)
-        .sort({ [sortColumn]: sortOrder === 'asc' ? 1 : -1 }) // Apply sorting here
+        .sort({ created_datetime: -1 }) // Sort by creation date in descending order (latest first)
         .skip(skip)
         .limit(parseInt(limit))
         .toArray();
