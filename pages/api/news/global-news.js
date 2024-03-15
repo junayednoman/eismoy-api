@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method === 'GET') {
+  if (req.method === 'POST') {
     try {
       const { category, limit, skipItem, skipNews } = req.body; 
       
