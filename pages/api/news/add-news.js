@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { title, description, featured_image, category, reporter_name, created_by, published_by, last_modified_by, publish_status, tags, meta_title, meta_description, meta_image, focus_keyword } = req.body;
+    const { title, description, featured_image, category, highlight, reporter_name, created_by, published_by, last_modified_by, publish_status, tags, meta_title, meta_description, meta_image, focus_keyword } = req.body;
 
     // Check if required fields are empty
     if (!title) {
@@ -72,6 +72,7 @@ export default async function handler(req, res) {
             description,
             featured_image,
             category,
+            highlight,
             reporter_name,
             created_by,
             published_by,
