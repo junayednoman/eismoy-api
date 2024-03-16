@@ -57,16 +57,16 @@ export default async function handler(req, res) {
 
         // Apply newsIds filter if provided
         if (newsIds) {
-            const newsIdsArray = newsIds.split(',').map(id => id.trim());
-
-            // Check if newsIdsArray has only one element
-            if (newsIdsArray.length === 1) {
-                const objectId = ObjectId.createFromHexString(newsIdsArray[0]); // Convert ID to ObjectId format
-                query._id = objectId; // Query for a single news with the provided ID
-            } else {
-                const objectIdArray = newsIdsArray.map(id => ObjectId.createFromHexString(id)); // Convert IDs to ObjectId format
-                query._id = { $in: objectIdArray }; // Include only news with provided IDs
-            }
+          const newsIdsArray = newsIds.split(',').map(id => id.trim());
+        
+          // Check if newsIdsArray has only one element
+          if (newsIdsArray.length === 1) {
+            const objectId = ObjectId.createFromHexString(newsIdsArray[0]); // Convert ID to ObjectId format
+            query._id = objectId; // Query for a single news with the provided ID
+          } else {
+            const objectIdArray = newsIdsArray.map(id => ObjectId.createFromHexString(id)); // Convert IDs to ObjectId format
+            query._id = { $in: objectIdArray }; // Include only news with provided IDs
+          }
         }
 
 
