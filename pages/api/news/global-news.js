@@ -1,5 +1,7 @@
 import { connectToDatabase } from '../../../db';
 
+import { ObjectId } from 'mongodb'; // Import ObjectId from MongoDB
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -45,17 +47,28 @@ export default async function handler(req, res) {
         skip = Math.max(0, parseInt(skipItem)); // Ensure skip value is non-negative
       }
 
-      // Apply news ID filter to skip if provided
-      if (skipNews) {
-        const skipNewsIds = skipNews.split(',').map(id => id.trim());
-        query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
-      }
 
-      // Apply newsIds filter if provided
-      if (newsIds) {
-        const newsIdsArray = newsIds.split(',').map(id => id.trim());
-        query._id = { $in: newsIdsArray }; // Include only news with provided IDs
-      }
+
+        // Apply news ID filter to skip if provided
+        if (skipNews) {
+            const skipNewsIds = skipNews.split(',').map(id => ObjectId.createFromHexString(id.trim())); // Convert IDs to ObjectId format
+            query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
+        }
+
+        // Apply newsIds filter if provided
+        if (newsIds) {
+            const newsIdsArray = newsIds.split(',').map(id => id.trim());
+
+            // Check if newsIdsArray has only one element
+            if (newsIdsArray.length === 1) {
+                const objectId = ObjectId.createFromHexString(newsIdsArray[0]); // Convert ID to ObjectId format
+                query._id = objectId; // Query for a single news with the provided ID
+            } else {
+                const objectIdArray = newsIdsArray.map(id => ObjectId.createFromHexString(id)); // Convert IDs to ObjectId format
+                query._id = { $in: objectIdArray }; // Include only news with provided IDs
+            }
+        }
+
 
       // Fetch news based on the query
       let news;
