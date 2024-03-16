@@ -33,7 +33,7 @@ export default async function handler(req, res) {
       // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();
 
-      let query = {};
+      let query = { publish_status: "Published" };
 
       // Apply category filter if provided
       if (category) {
