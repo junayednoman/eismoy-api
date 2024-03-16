@@ -3,32 +3,32 @@ import { connectToDatabase } from '../../../db';
 import { ObjectId } from 'mongodb'; // Import ObjectId from MongoDB
 
 export default async function handler(req, res) {
-  // // Set CORS headers
-  // res.setHeader('Access-Control-Allow-Credentials', true);
-  // res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  // res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
   
-  // // Set Access-Control-Allow-Origin header dynamically based on the request origin
-  // const origin = req.headers.origin;
-  // const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app'];
+  // Set Access-Control-Allow-Origin header dynamically based on the request origin
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app'];
   
-  // if (origin && allowedOrigins.includes(origin)) {
-  //   res.setHeader('Access-Control-Allow-Origin', origin);
-  // } else {
-  //   // If the origin is not allowed, return a CORS error response
-  //   res.status(403).json({ error: 'Origin not allowed' });
-  //   return;
-  // }
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // If the origin is not allowed, return a CORS error response
+    res.status(403).json({ error: 'Origin not allowed' });
+    return;
+  }
 
-  // // Handle preflight request
-  // if (req.method === 'OPTIONS') {
-  //   res.status(200).end(); // Respond with 200 status code for preflight requests
-  //   return;
-  // }
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end(); // Respond with 200 status code for preflight requests
+    return;
+  }
 
   if (req.method === 'POST') {
     try {
-      const { category, limit, skipItem, skipNews, newsIds } = req.body; // Include newsIds in the request body
+      const { category, limit, skipItem, skipNews } = req.body; // Include newsIds in the request body
 
       // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();
@@ -49,25 +49,11 @@ export default async function handler(req, res) {
 
 
 
-        // Apply news ID filter to skip if provided
-        if (skipNews) {
-            const skipNewsIds = skipNews.split(',').map(id => ObjectId.createFromHexString(id.trim())); // Convert IDs to ObjectId format
-            query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
-        }
-
-        // Apply newsIds filter if provided
-        if (newsIds) {
-          const newsIdsArray = newsIds.split(',').map(id => id.trim());
-        
-          // Check if newsIdsArray has only one element
-          if (newsIdsArray.length === 1) {
-            const objectId = ObjectId.createFromHexString(newsIdsArray[0]); // Convert ID to ObjectId format
-            query._id = objectId; // Query for a single news with the provided ID
-          } else {
-            const objectIdArray = newsIdsArray.map(id => ObjectId.createFromHexString(id)); // Convert IDs to ObjectId format
-            query._id = { $in: objectIdArray }; // Include only news with provided IDs
-          }
-        }
+      // Apply news ID filter to skip if provided
+      if (skipNews) {
+          const skipNewsIds = skipNews.split(',').map(id => ObjectId.createFromHexString(id.trim())); // Convert IDs to ObjectId format
+          query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
+      }
 
 
       // Fetch news based on the query
