@@ -6,11 +6,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-  
+
   // Set Access-Control-Allow-Origin header dynamically based on the request origin
   const origin = req.headers.origin;
   const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app', 'http://localhost:3000'];
-  
+
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     // Parse token from request cookies
     const token = req.cookies.token;
-
+    
     try {
       // Verify token
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);

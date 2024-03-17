@@ -5,11 +5,11 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
+  
   // Set Access-Control-Allow-Origin header dynamically based on the request origin
   const origin = req.headers.origin;
   const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app', 'http://localhost:3000'];
-
+  
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   } else {
@@ -24,14 +24,35 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method === 'GET') {
+  if (req.method === 'POST') {
     try {
+      const { category, limit } = req.body; // Include newsIds in the request body
+
+      // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();
 
-      // Find the featured news document
-      const featuredNewsDocument = await db.collection('featured_news').findOne({}, { projection: { _id: 0 } });
+      let query = { publish_status: "Published" };
 
-      res.status(200).json(featuredNewsDocument);
+      // Apply category filter if provided
+      if (category) {
+        const categoryRegex = new RegExp(category, 'i');
+        query.category = { $regex: categoryRegex };
+      }
+
+      // Fetch news based on the query
+      let news;
+      if (limit) {
+        news = await db.collection('news')
+          .find(query)
+          .limit(parseInt(limit))
+          .toArray();
+      } else {
+        news = await db.collection('news')
+          .find(query)
+          .toArray();
+      }
+
+      res.status(200).json(news);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server Error' });
