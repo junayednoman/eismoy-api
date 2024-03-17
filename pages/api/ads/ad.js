@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        
+
         const { ad_name, image, link, status } = req.body;
 
         const adDoc = {
@@ -50,11 +50,11 @@ export default async function handler(req, res) {
             const db = await connectToDatabase();
 
             // Find the existing document
-            const existingDocument = await db.collection('ads').findOne({ad_name: ad_name});
+            const existingDocument = await db.collection('ads').findOne({ ad_name: ad_name });
 
             // Update or insert based on the existence of the document
             if (existingDocument) {
-                await db.collection('ads').updateOne({ad_name: ad_name}, { $set: adDoc });
+                await db.collection('ads').updateOne({ ad_name: ad_name }, { $set: adDoc });
             } else {
                 await db.collection('ads').insertOne(adDoc);
             }
