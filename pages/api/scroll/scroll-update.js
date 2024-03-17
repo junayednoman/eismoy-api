@@ -1,5 +1,4 @@
 import { connectToDatabase } from '../../../db';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
@@ -19,18 +18,18 @@ export default async function handler(req, res) {
     res.status(403).json({ error: 'Origin not allowed' });
     return;
   }
-  
-    // Handle preflight request
-    if (req.method === 'OPTIONS') {
-      res.status(200).end(); // Respond with 200 status code for preflight requests
-      return;
-    }
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end(); // Respond with 200 status code for preflight requests
+    return;
+  }
 
   if (req.method === 'POST') {
-    const { userid, name, email, password, role, display_name } = req.body;
+    const { scroll_id, title, scroll_status} = req.body;
 
     // Check if required fields are empty
-    if (!userid || !name || !email || !role || !display_name) {
+    if (!title) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -49,43 +48,27 @@ export default async function handler(req, res) {
       const userRole = decodedToken.role;
 
       // Check if the user has the necessary role to update users
-      if (userRole !== 'admin') {
+      if (userRole !== 'admin' && userRole !== 'editor') {
         return res.status(403).json({ message: 'Forbidden' });
       }
 
       const db = await connectToDatabase();
 
-      // Check if user exists
-      const existingUser = await db.collection('users').findOne({ userid: userid });
-
-      if (!existingUser) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
       // Construct update data
       const updateData = {
-        name,
-        email,
-        role,
-        display_name,
-        updated_at: new Date()
+        title,
+        scroll_status,
       };
 
-      // Update password if provided
-      if (password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        updateData.password = hashedPassword;
-      }
-
       // Update user
-      await db.collection('users').updateOne(
-        { userid: userid },
+      await db.collection('scroll').updateOne(
+        { scroll_id: scroll_id },
         {
           $set: updateData
         }
       );
 
-      res.status(200).json({ message: 'User updated successfully' });
+      res.status(200).json({ message: 'Scroll updated successfully' });
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

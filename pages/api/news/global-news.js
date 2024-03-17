@@ -1,5 +1,6 @@
 import { connectToDatabase } from '../../../db';
-import jwt from 'jsonwebtoken';
+
+import { ObjectId } from 'mongodb'; // Import ObjectId from MongoDB
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -26,53 +27,53 @@ export default async function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    const { category, newsId1, newsId2, newsId3, newsId4 } = req.body;
-
-    // Check if required fields are empty
-    if (!category || !newsId1 || !newsId2 || !newsId3 || !newsId4) {
-      return res.status(400).json({ message: 'All fields are required' });
-    }
-
     try {
-      // Parse token from request cookies
-      const token = req.cookies.token;
+      const { category, limit, skipItem, skipNews } = req.body; // Include newsIds in the request body
 
-      // Parse token from request query to test in postman
-      //const token = req.query.token;
-
-      if (!token) {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
-
-      // Verify token
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Extract user's role
-      const userRole = decodedToken.role;
-
-      // Check if user role is not admin or editor
-      if (userRole !== 'admin' && userRole !== 'editor') {
-        return res.status(403).json({ message: 'Forbidden' });
-      }
-
+      // Fetch all news from the database based on the provided parameters
       const db = await connectToDatabase();
 
+      let query = { publish_status: "Published" };
 
-      // Create category
-      await db.collection('event_news').insertOne({
-        category,
-        newsId1,
-        newsId2, // Set parent to null if it's empty
-        newsId3,
-        newsId4,
-      });
+      // Apply category filter if provided
+      if (category) {
+        const categoryRegex = new RegExp(category, 'i');
+        query.category = { $regex: categoryRegex };
+      }
 
-      res.status(201).json({ message: 'Event News Updated successfully' });
+      // Apply skip value if provided
+      let skip = 0;
+      if (skipItem && !isNaN(parseFloat(skipItem))) {
+        skip = Math.max(0, parseInt(skipItem)); // Ensure skip value is non-negative
+      }
+
+
+
+      // Apply news ID filter to skip if provided
+      if (skipNews) {
+          const skipNewsIds = skipNews.split(',').map(id => ObjectId.createFromHexString(id.trim())); // Convert IDs to ObjectId format
+          query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
+      }
+
+
+      // Fetch news based on the query
+      let news;
+      if (limit) {
+        news = await db.collection('news')
+          .find(query)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+      } else {
+        news = await db.collection('news')
+          .find(query)
+          .skip(skip)
+          .toArray();
+      }
+
+      res.status(200).json(news);
     } catch (error) {
       console.error(error);
-      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-        return res.status(401).json({ message: 'Unauthorized' });
-      }
       res.status(500).json({ message: 'Server Error' });
     }
   } else {

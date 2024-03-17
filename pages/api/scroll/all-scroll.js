@@ -1,9 +1,9 @@
-// pages/api/authenticate.js
-
+// pages/api/all-users.js
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -26,49 +26,33 @@ export default async function handler(req, res) {
     res.status(200).end(); // Respond with 200 status code for preflight requests
     return;
   }
-
+  
   if (req.method === 'GET') {
+    // Parse token from request cookies
+    const token = req.cookies.token;
+
     try {
-      // Retrieve token from cookies
-      const token = req.cookies.token;
-
-      if (!token) {
-        // If token is not present, user is not authenticated
-        console.error('not getting token from request');
-        return res.status(401).json({ authenticated: false });
-      }
-
       // Verify token
       const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decodedToken.userId;
+      
+      // Check if user role is not admin or editor
+        if (decodedToken.role !== 'admin' && decodedToken.role !== 'editor') {
+            return res.status(403).json({ message: 'Forbidden' });
+        }
 
-      if (!userId) {
-        // If userId is not present in token, token is invalid
-        console.error('user id is invalid');
-        return res.status(401).json({ authenticated: false });
-      }
-
-      // Check if user exists in the database
+      // Fetch all user details from the database
       const db = await connectToDatabase();
-      const user = await db.collection('users').findOne({ userid: userId });
-
-      if (!user) {
-        // If user does not exist, user is not authenticated
-        console.error('user is not available');
-        return res.status(401).json({ authenticated: false });
-      }
-
-      // User is authenticated
-      console.error('api working good');
-      return res.status(200).json({ authenticated: true });
+      const categories = await db.collection('scroll').find({}, { projection: { _id: 0 } }).toArray(); // Exclude _id, password, and forget_password_token fields
+      
+      res.status(200).json(categories);
     } catch (error) {
-      // If token is invalid or expired, user is not authenticated
-      console.error('Error verifying token:', error);
-      return res.status(401).json({ authenticated: false });
+      console.error(error);
+      if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      res.status(500).json({ message: 'Server Error' });
     }
   } else {
-    // Method not allowed
-    console.error('method not allowed');
     res.status(405).json({ message: 'Method Not Allowed' });
   }
 }

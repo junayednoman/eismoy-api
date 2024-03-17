@@ -29,7 +29,7 @@ export default async function handler(req, res) {
             const db = await connectToDatabase();
 
             // Find the layout news document
-            const layoutNewsDocument = await db.collection('layout_news').findOne({}, { projection: { _id: 0 } });
+            const layoutNewsDocument = await db.collection('general_settings').findOne({}, { projection: { _id: 0 } });
 
             // Return the layout news document
             res.status(200).json(layoutNewsDocument);

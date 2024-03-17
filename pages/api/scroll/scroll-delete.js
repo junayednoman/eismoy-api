@@ -41,30 +41,30 @@ export default async function handler(req, res) {
             const userRole = decodedToken.role;
 
             // Check if the user has the necessary role to delete users
-            if (userRole !== 'admin') {
+            if (userRole !== 'admin' && userRole !== 'editor') {
                 return res.status(403).json({ message: 'Forbidden' });
             }
 
             // Extract the userid from the request body
-            const { userId } = req.body; // Assuming the user ID is sent in the request body
+            const { scroll_id } = req.body; // Assuming the user ID is sent in the request body
 
-            if (!userId) {
-                return res.status(400).json({ message: 'User ID is required' });
+            if (!scroll_id) {
+                return res.status(400).json({ message: 'Something is wrong' });
             }
 
             const db = await connectToDatabase();
 
             // Check if the user exists
-            const existingUser = await db.collection('users').findOne({ userid: userId });
+            const existingUser = await db.collection('scroll').findOne({ scroll_id: scroll_id });
 
             if (!existingUser) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'Scroll not found' });
             }
 
             // Delete the user
-            await db.collection('users').deleteOne({ userid: userId });
+            await db.collection('scroll').deleteOne({ scroll_id: scroll_id });
 
-            res.status(200).json({ message: 'User deleted successfully' });
+            res.status(200).json({ message: 'Scroll deleted successfully' });
         } catch (error) {
             console.error(error);
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

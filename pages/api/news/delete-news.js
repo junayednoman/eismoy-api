@@ -1,6 +1,8 @@
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
+const { ObjectId } = require('mongodb');
+
 export default async function handler(req, res) {
     // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -41,30 +43,32 @@ export default async function handler(req, res) {
             const userRole = decodedToken.role;
 
             // Check if the user has the necessary role to delete users
-            if (userRole !== 'admin') {
+            if (userRole !== 'admin' && userRole !== 'editor' && userRole !== 'reporter') {
                 return res.status(403).json({ message: 'Forbidden' });
             }
 
             // Extract the userid from the request body
-            const { userId } = req.body; // Assuming the user ID is sent in the request body
+            const { cat_id } = req.body; // Assuming the user ID is sent in the request body
 
-            if (!userId) {
-                return res.status(400).json({ message: 'User ID is required' });
+            if (!cat_id) {
+                return res.status(400).json({ message: 'Something is wrong' });
             }
 
             const db = await connectToDatabase();
+            
+            const objectId = ObjectId.createFromHexString(cat_id);
 
             // Check if the user exists
-            const existingUser = await db.collection('users').findOne({ userid: userId });
+            const existingUser = await db.collection('news').findOne({ _id: objectId });
 
             if (!existingUser) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'News not found' });
             }
 
             // Delete the user
-            await db.collection('users').deleteOne({ userid: userId });
+            await db.collection('news').deleteOne({ _id: objectId });
 
-            res.status(200).json({ message: 'User deleted successfully' });
+            res.status(200).json({ message: 'News deleted successfully' });
         } catch (error) {
             console.error(error);
             if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

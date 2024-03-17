@@ -1,10 +1,10 @@
-// pages/api/details.js
+// pages/api/all-users.js
 import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
 
-    // Set CORS headers
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
@@ -20,30 +20,24 @@ export default async function handler(req, res) {
     res.status(403).json({ error: 'Origin not allowed' });
     return;
   }
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end(); // Respond with 200 status code for preflight requests
+    return;
+  }
   
-    // Handle preflight request
-    if (req.method === 'OPTIONS') {
-      res.status(200).end(); // Respond with 200 status code for preflight requests
-      return;
-    }
   if (req.method === 'GET') {
-    // Parse token from request cookies
-    const token = req.cookies.token;
 
     try {
-      // Verify token
-      const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decodedToken.userId;
+      
 
-      // Fetch specific fields of user details from the database based on userid
-      const db = await connectToDatabase();
-      const user = await db.collection('users').findOne({ userid: userId }, { projection: { userid: 1, name: 1, email: 1, created_at: 1, updated_at: 1, role: 1, display_name: 1, _id: 0 } });
+     // Fetch all user details from the database where scroll_status is "on"
+        const db = await connectToDatabase();
+        const categories = await db.collection('scroll').find({ scroll_status: 'on' }, { projection: { _id: 0, scroll_id: 0 } }).toArray(); // Exclude _id, password, and forget_password_token fields
 
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      res.status(200).json(user);
+      
+      res.status(200).json(categories);
     } catch (error) {
       console.error(error);
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {

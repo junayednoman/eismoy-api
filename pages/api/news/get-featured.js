@@ -28,11 +28,10 @@ export default async function handler(req, res) {
         try {
             const db = await connectToDatabase();
 
-            // Find the layout news document
-            const layoutNewsDocument = await db.collection('layout_news').findOne({}, { projection: { _id: 0 } });
+            // Find the featured news document
+            const featuredNewsDocument = await db.collection('featured_news').findOne({}, { projection: { _id: 0 } });
 
-            // Return the layout news document
-            res.status(200).json(layoutNewsDocument);
+            res.status(200).json(featuredNewsDocument);
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server Error' });

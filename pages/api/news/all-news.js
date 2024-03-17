@@ -2,14 +2,22 @@ import { connectToDatabase } from '../../../db';
 import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // Set CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGIN);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'Authorization, Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+  
+  // Set Access-Control-Allow-Origin header dynamically based on the request origin
+  const origin = req.headers.origin;
+  const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app', 'http://localhost:3000'];
+  
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    // If the origin is not allowed, return a CORS error response
+    res.status(403).json({ error: 'Origin not allowed' });
+    return;
+  }
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {
@@ -52,14 +60,14 @@ export default async function handler(req, res) {
       // Apply search filter for all fields
       if (search) {
         const searchRegex = new RegExp(search, 'i');
-        const searchFields = ['title', 'category', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', 'created_datetime', 'published_datetime', 'modified_datetime'];
+        const searchFields = ['title', 'category', 'highlight', 'reporter_name', 'publish_status', 'created_by', 'published_by', 'last_modified_by', 'created_datetime', 'published_datetime', 'modified_datetime'];
         query.$or = searchFields.map((field) => ({ [field]: { $regex: searchRegex } }));
       }
 
       // Fetch categories based on the query and apply sorting
       categories = await db.collection('news')
         .find(query)
-        .sort({ [sortColumn]: sortOrder === 'asc' ? 1 : -1 }) // Apply sorting here
+        .sort({ created_datetime: -1 }) // Sort by creation date in descending order (latest first)
         .skip(skip)
         .limit(parseInt(limit))
         .toArray();
