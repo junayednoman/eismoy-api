@@ -43,10 +43,12 @@ export default async function handler(req, res) {
             }
 
             // Query to find news items by category name and publish status
-            const query = {
-                category: category.categoryName, // Get category name from the news_categories collection
+            const query = { // Get category name from the news_categories collection
                 publish_status: "Published"
             };
+
+            const categoryRegex = new RegExp(category.categoryName, 'i');
+            query.category = { $regex: categoryRegex };
 
             // Find total count of news items matching the query
             const totalCount = await db.collection('news').countDocuments(query);
