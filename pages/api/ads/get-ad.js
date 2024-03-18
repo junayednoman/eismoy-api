@@ -38,12 +38,11 @@ export default async function handler(req, res) {
             // Fetch the ad from the database based on the provided ad name
             const db = await connectToDatabase();
 
-            const query = { ad_name: ad_name, status: "Hide" };
+            const query = { ad_name: ad_name, status: "Show" };
 
             // Fetch the ad based on the query
             const ad = await db.collection('ads')
                 .findOne(query);
-
             if (ad) {
                 res.status(200).json(ad);
             } else {
