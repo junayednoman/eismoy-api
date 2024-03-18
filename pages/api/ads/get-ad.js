@@ -27,10 +27,10 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { adName } = req.body; // Include adName in the request body
+            const { ad_name } = req.body; // Include ad_name in the request body
 
-            // Check if adName is provided
-            if (!adName) {
+            // Check if ad_name is provided
+            if (!ad_name) {
                 res.status(400).json({ message: 'Ad name is required' });
                 return;
             }
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
             // Fetch the ad from the database based on the provided ad name
             const db = await connectToDatabase();
 
-            const query = { ad_name: adName, status: "Show" };
+            const query = { ad_name: ad_name, status: "Show" };
 
             // Fetch the ad based on the query
             const ad = await db.collection('ads')
