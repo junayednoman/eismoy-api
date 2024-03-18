@@ -3,12 +3,12 @@ import { connectToDatabase } from '../../../db';
 export default async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
     // Set Access-Control-Allow-Origin header dynamically based on the request origin
     const origin = req.headers.origin;
-    const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://ei-matro-dusky.vercel.app', 'http://localhost:3000'];
+    const allowedOrigins = ['https://eisomoy-dashboard-node.vercel.app', 'https://ei-matro.vercel.app', 'https://eimattro.com', 'http://localhost:3000'];
 
     if (origin && allowedOrigins.includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
@@ -26,29 +26,27 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { category, limit, skipItem, skipNews } = req.body; // Include newsIds in the request body
+            const { skip, limit } = req.body;
 
-            // Fetch all news from the database based on the provided parameters
             const db = await connectToDatabase();
 
-            let query = { publish_status: "Published" };
+            const query = {
+                publish_status: 'Published'
+            };
 
-            // Fetch news based on the query, sorted by _id in descending order
-            let news;
-            if (limit) {
-                news = await db.collection('news')
-                    .find(query)
-                    .sort({ _id: -1 })
-                    .limit(parseInt(limit))
-                    .toArray();
-            } else {
-                news = await db.collection('news')
-                    .find(query)
-                    .sort({ _id: -1 })
-                    .toArray();
-            }
+            // Find total count of news items matching the query
+            const totalCount = await db.collection('news').countDocuments(query);
 
-            res.status(200).json(news);
+            // Find news items based on the query with server-side pagination
+            const newsItems = await db.collection('news')
+                .find(query)
+                .sort({ _id: -1 }) // Sort by _id in descending order (latest first)
+                .skip(skip ? parseInt(skip) : 0) // Skip items if pagination is applied
+                .limit(parseInt(limit)) // Limit the number of items returned
+                .toArray();
+
+            // Return response with news items, total count
+            res.status(200).json({ newsItems, totalCount });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server Error' });

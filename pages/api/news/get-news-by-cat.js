@@ -1,5 +1,4 @@
 import { connectToDatabase } from '../../../db';
-import { ObjectId } from 'mongodb'; // Import ObjectId from MongoDB
 
 export default async function handler(req, res) {
     // Set CORS headers
@@ -27,49 +26,52 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { category, limit, skipItem, skipNews } = req.body; // Include newsIds in the request body
+            // Extract slug from the request body
+            const { slug, skip, limit } = req.body;
 
-            // Fetch all news from the database based on the provided parameters
+            if (!slug) {
+                return res.status(400).json({ message: 'Slug is required' });
+            }
+
             const db = await connectToDatabase();
 
-            let query = { publish_status: "Published" };
+            // Find the category name based on the provided slug
+            const category = await db.collection('news_categories').findOne({ slug });
 
-            // Apply category filter if provided
-            if (category) {
-                const categoryRegex = new RegExp(category, 'i');
-                query.category = { $regex: categoryRegex };
+            if (!category) {
+                return res.status(404).json({ message: 'Category not found' });
             }
 
-            // Apply skip value if provided
-            let skip = 0;
-            if (skipItem && !isNaN(parseFloat(skipItem))) {
-                skip = Math.max(0, parseInt(skipItem)); // Ensure skip value is non-negative
-            }
+            // Query to find news items by category name and publish status
+            const query = { // Get category name from the news_categories collection
+                publish_status: "Published"
+            };
 
-            // Apply news ID filter to skip if provided
-            if (skipNews) {
-                const skipNewsIds = skipNews.split(',').map(id => ObjectId.createFromHexString(id.trim())); // Convert IDs to ObjectId format
-                query._id = { $nin: skipNewsIds }; // Exclude news with provided IDs
-            }
+            const categoryRegex = new RegExp(category.categoryName, 'i');
+            query.category = { $regex: categoryRegex };
 
-            // Fetch news based on the query, sorted by _id in descending order
-            let news;
+            // Find total count of news items matching the query
+            const totalCount = await db.collection('news').countDocuments(query);
+
+            // Find news items based on the query with server-side pagination
+            let newsItems;
             if (limit) {
-                news = await db.collection('news')
+                newsItems = await db.collection('news')
                     .find(query)
                     .sort({ _id: -1 }) // Sort by _id in descending order (latest first)
-                    .skip(skip)
-                    .limit(parseInt(limit))
+                    .skip(skip ? parseInt(skip) : 0) // Skip items if pagination is applied
+                    .limit(parseInt(limit)) // Limit the number of items returned
                     .toArray();
             } else {
-                news = await db.collection('news')
+                newsItems = await db.collection('news')
                     .find(query)
                     .sort({ _id: -1 }) // Sort by _id in descending order (latest first)
-                    .skip(skip)
+                    .skip(skip ? parseInt(skip) : 0) // Skip items if pagination is applied
                     .toArray();
             }
 
-            res.status(200).json(news);
+            // Return response with news items, total count, and category name
+            res.status(200).json({ newsItems, totalCount, category: category.categoryName });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Server Error' });
