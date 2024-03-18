@@ -38,7 +38,7 @@ export default async function handler(req, res) {
             // Fetch the ad from the database based on the provided ad name
             const db = await connectToDatabase();
 
-            const query = { ad_name: ad_name, status: "Show" };
+            const query = { ad_name: ad_name, status: "Hide" };
 
             // Fetch the ad based on the query
             const ad = await db.collection('ads')
